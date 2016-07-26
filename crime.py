@@ -20,17 +20,20 @@ c_map = folium.Map(location=[-38.1417, 144.4265], tiles="Cartodb Positron",
 # use function to cut down json file to Geelong region postcodes
                    
 def cut_json(fl, out_fl, region):
+    """
+    function to cut downloaded australian postcodes into selected area
+    region can be the first few numbers of desired postcodes
+    """
     with open(fl) as f:
         output = open(out_fl, "w")
         count = 0
         for line in f:
             if line.startswith('{ "type"'):
-
                 cols = line.strip().split('"')
                 postcode = cols[9]
                 if postcode.startswith(region):
-                    count += 1
-                    if count > 1:
+                    count += 1          
+                    if count > 1:       # doing this so no comma attached to last entry
                         output.write(",\n")
                     output.write(line.rstrip(",\n"))
             else:
