@@ -5,11 +5,16 @@ import pandas as pd
 import folium
 
 # make a pandas df with crime-postcode information
+# also need to convert to json for later plotting
 
 pdf = pd.read_csv("./data/postcode_data.txt", sep="\t")
+pdf_codes = pdf[["Postcode", "Rate_per_100000"]]
+pdf_codes.columns = ["POA_CODE", "Rate_per_100000"]
+pdf_codes = pdf_codes.set_index("POA_CODE")
+print pdf_codes
 
-OG_2014 = pdf[(pdf.Postcode == 3226) & (pdf.April_to_March == 2014)]
-
+pdf_codes.to_json("post_rate.json")
+pdf_codes = pdf_codes.reset_index()
 
 # tiles: "Cartodb Positron", "Stamen Toner", "Stamen Terrain", 
 # "Mapbox Bright"
@@ -21,7 +26,7 @@ c_map = folium.Map(location=[-38.1417, 144.4265], tiles="Cartodb Positron",
                    
 def cut_json(fl, out_fl, region):
     """
-    function to cut downloaded australian postcodes into selected area
+    function to cut downloaded postcodes into selected area.
     region can be the first few numbers of desired postcodes
     """
     with open(fl) as f:
@@ -41,6 +46,19 @@ def cut_json(fl, out_fl, region):
                 
 cut_json("./data/postcode_boundaries/POA_2011_VIC.json", "edited_VIC.json", "32")
 
-c_map.choropleth(geo_path="edited_VIC.json")                   
+c_map.choropleth(geo_path="edited_VIC.json",
+                 data_out = "post_rate.json",
+                 data = pdf_codes,
+                 columns = ["POA_CODE", "Rate_per_100000"],
+                 key_on = "feature.properties.POA_CODE",
+                 fill_color = "YlOrRd",
+                 fill_opacity = 0.7,
+                 line_opacity = 0.2)                   
                    
 c_map.save("crime_map.html")
+
+
+
+
+
+
