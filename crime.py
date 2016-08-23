@@ -10,8 +10,13 @@ pdf = pd.read_csv("./data/postcode_data.txt", sep="\t")
 # subset to Geelong postcodes, which mostly start with 32
 pdf_geel = pdf[(pdf.Postcode > 3199) & (pdf.Postcode <  3300)]
 
+# subset by crime type
+## TODO: problem here is that this causes a KeyError because not all postcodes have data for these specific crimes
+pdf_geel = pdf_geel[pdf_geel.Offence_Group == "F99_Other_miscellaneous_offences"]
+
 # now get average crime rate for each postcode
-pdf_geel_post = pdf_geel["Rate_per_100000"].groupby(pdf_geel["Postcode"]).mean().astype(float)
+# group by different variables to change crime type
+pdf_geel_post = pdf_geel["Rate_per_100000"].groupby(pdf_geel["Postcode"]).median().astype(float)
 
 # this creates series, want to reset index to get back to df
 pdf_geel_post = pdf_geel_post.reset_index()
