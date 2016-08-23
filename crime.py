@@ -8,13 +8,19 @@ import folium
 # also need to convert to json for later plotting
 
 pdf = pd.read_csv("./data/postcode_data.txt", sep="\t")
-pdf_codes = pdf[["Postcode", "Rate_per_100000"]]
-pdf_codes.columns = ["POA_CODE", "Rate_per_100000"]
-pdf_codes = pdf_codes.set_index("POA_CODE")
-print pdf_codes
 
-pdf_codes.to_json("post_rate.json")
-pdf_codes = pdf_codes.reset_index()
+pdf_geel = pdf[(pdf.Postcode > 3199) & (pdf.Postcode <  3295)]
+
+pdf_geel_post = pdf_geel["Rate_per_100000"].groupby(pdf_geel["Postcode"]).mean().astype(float)
+
+pdf_geel_post.to_json("post_rate.json")
+
+pdf_geel_post = pdf_geel_post.reset_index()
+
+pdf_geel_post.columns = ["POA_CODE", "Rate_per_100000"]
+
+pdf_geel_post["POA_CODE"] = pdf_geel_post.POA_CODE.astype(str)
+
 
 # tiles: "Cartodb Positron", "Stamen Toner", "Stamen Terrain", 
 # "Mapbox Bright"
@@ -22,33 +28,9 @@ pdf_codes = pdf_codes.reset_index()
 c_map = folium.Map(location=[-38.1417, 144.4265], tiles="Cartodb Positron",
                    zoom_start=11)
                    
-# use function to cut down json file to Geelong region postcodes
-                   
-def cut_json(fl, out_fl, region):
-    """
-    function to cut downloaded postcodes into selected area.
-    region can be the first few numbers of desired postcodes
-    """
-    with open(fl) as f:
-        output = open(out_fl, "w")
-        count = 0
-        for line in f:
-            if line.startswith('{ "type"'):
-                cols = line.strip().split('"')
-                postcode = cols[9]
-                if postcode.startswith(region):
-                    count += 1          
-                    if count > 1:       # doing this so no comma attached to last entry
-                        output.write(",\n")
-                    output.write(line.rstrip(",\n"))
-            else:
-                output.write(line)                
-                
-cut_json("./data/postcode_boundaries/POA_2011_VIC.json", "edited_VIC.json", "32")
-
 c_map.choropleth(geo_path="edited_VIC.json",
-                 data_out = "post_rate.json",
-                 data = pdf_codes,
+                 #data_out = "post_rate.json",
+                 data = pdf_geel_post,
                  columns = ["POA_CODE", "Rate_per_100000"],
                  key_on = "feature.properties.POA_CODE",
                  fill_color = "YlOrRd",
@@ -56,9 +38,3 @@ c_map.choropleth(geo_path="edited_VIC.json",
                  line_opacity = 0.2)                   
                    
 c_map.save("crime_map.html")
-
-
-
-
-
-
