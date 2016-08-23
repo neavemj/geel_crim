@@ -5,31 +5,33 @@ import pandas as pd
 import folium
 
 # make a pandas df with crime-postcode information
-# also need to convert to json for later plotting
-
 pdf = pd.read_csv("./data/postcode_data.txt", sep="\t")
 
-pdf_geel = pdf[(pdf.Postcode > 3199) & (pdf.Postcode <  3295)]
+# subset to Geelong postcodes, which mostly start with 32
+pdf_geel = pdf[(pdf.Postcode > 3199) & (pdf.Postcode <  3300)]
 
+# now get average crime rate for each postcode
 pdf_geel_post = pdf_geel["Rate_per_100000"].groupby(pdf_geel["Postcode"]).mean().astype(float)
 
-pdf_geel_post.to_json("post_rate.json")
-
+# this creates series, want to reset index to get back to df
 pdf_geel_post = pdf_geel_post.reset_index()
 
+# re-label columns. POA_CODE needs to match with the Vic postcodes
 pdf_geel_post.columns = ["POA_CODE", "Rate_per_100000"]
 
+# took ages to figure out that this was called in as an int, causing a type error
+# need to make this a str so will match vic postcode data
 pdf_geel_post["POA_CODE"] = pdf_geel_post.POA_CODE.astype(str)
 
-
-# tiles: "Cartodb Positron", "Stamen Toner", "Stamen Terrain", 
+# different tile options: "Cartodb Positron", "Stamen Toner", "Stamen Terrain", 
 # "Mapbox Bright"
 
+# create blank map with centre point and tile theme
 c_map = folium.Map(location=[-38.1417, 144.4265], tiles="Cartodb Positron",
                    zoom_start=11)
-                   
+                 
+# now add choropleth overlay containing crime data                
 c_map.choropleth(geo_path="edited_VIC.json",
-                 #data_out = "post_rate.json",
                  data = pdf_geel_post,
                  columns = ["POA_CODE", "Rate_per_100000"],
                  key_on = "feature.properties.POA_CODE",
