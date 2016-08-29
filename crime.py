@@ -6,30 +6,25 @@ import folium
 import json
 
 # read json file of postcode boundaries in Victoria
+# create a new dict that contains only areas of interest
 with open("data/postcode_boundaries/POA_2011_VIC.json") as json_data:
+    json_dict = {}
+    json_dict["features"] = []
     loaded = json.load(json_data)
-    print "init_len", len(loaded["features"])
-    count_if = 0
-    count_else = 0
     for entry in loaded["features"]:
-        print entry["properties"]["POA_NAME"]
-        #break
-        if entry["properties"]["POA_NAME"] == "3226":
-            print entry
-            count_if += 1
-        else:
-            loaded["features"].remove(entry)
-            count_else += 1
-    print "final_len", len(loaded["features"])
-    print count_if, count_else
-    for entry in loaded["features"]:
-        print entry["properties"]["POA_NAME"]
+        post_int = int(entry["properties"]["POA_NAME"].split()[0])
+        if post_int > 3200 and post_int < 3300:
+            json_dict["features"].append(entry)
 
+# now write data_dict back into json file
+with open('edited_VIC2.json', 'w') as output:
+    json.dump(json_dict, output)
+    
 # make a pandas df with crime-postcode information
 pdf = pd.read_csv("./data/postcode_data.txt", sep="\t")
 
 # subset to Geelong postcodes, which mostly start with 32
-pdf_geel = pdf[(pdf.Postcode > 2999) & (pdf.Postcode <  4000)]
+pdf_geel = pdf[(pdf.Postcode > 3200) & (pdf.Postcode <  3300)]
 
 # subset by crime type
 ## TODO: problem here is that this causes a KeyError because not all postcodes have data for these specific crimes
@@ -57,7 +52,7 @@ c_map = folium.Map(location=[-38.1417, 144.4265], tiles="Cartodb Positron",
                    zoom_start=11)
                  
 # now add choropleth overlay containing crime data                
-c_map.choropleth(geo_path="data/postcode_boundaries/POA_2011_VIC.json",
+c_map.choropleth(geo_path="edited_VIC2.json",
                  data = pdf_geel_post,
                  columns = ["POA_CODE", "Rate_per_100000"],
                  key_on = "feature.properties.POA_CODE",
