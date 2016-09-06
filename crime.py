@@ -50,14 +50,14 @@ pdf_geel_post["POA_CODE"] = pdf_geel_post.POA_CODE.astype(str)
 
 # subsetting crime data to only those with postcode information
 # seems ridiculously hard to do an R cbind in pandas
+
+count = 0
 for postcode in postcode_list:
+    count += 1    
     if any(pdf_geel_post.POA_CODE == postcode):
         pass
     else:
-        df2 = pd.DataFrame([postcode, "0"], columns=['POA_CODE', 'Rate_per_100000'])
-        pdf_geel_post.append(df2)
-
-print pdf_geel_post
+        pdf_geel_post = pdf_geel_post.append({"POA_CODE": postcode, "Rate_per_100000": 0}, ignore_index=True)
 
 #pdf_geel_post = pdf_geel_post[pdf_geel_post["POA_CODE"].isin(postcode_list)]
 
