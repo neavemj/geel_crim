@@ -12,15 +12,21 @@ pdf = pd.read_csv("./data/postcode_data.txt", sep="\t")
 pdf_geel = pdf[(pdf.Postcode > 3000) & (pdf.Postcode <  4000)]
 
 # look at a particular year
-pdf_geel = pdf_geel[pdf_geel.April_to_March == 2015]
+pdf_geel = pdf_geel[pdf_geel.April_to_March == 2012]
 #print set(pdf_geel.Offence_Division)
 
 # subset by crime type
-pdf_geel = pdf_geel[pdf_geel.Offence_Division == "A_Crimes_against_the_person"]
+#pdf_geel = pdf_geel[pdf_geel.Offence_Division == "A_Crimes_against_the_person"]
+#pdf_geel = pdf_geel[pdf_geel.Offence_Division == "B_Property_and_deception_offences"]
+pdf_geel = pdf_geel[pdf_geel.Offence_Division == "C_Drug_offences"]
+#pdf_geel = pdf_geel[pdf_geel.Offence_Division == "D_Public_order_and_security_offences"]
+#pdf_geel = pdf_geel[pdf_geel.Offence_Division == "E_Justice_procedures_offences"]
+#pdf_geel = pdf_geel[pdf_geel.Offence_Division == "F_Other_offences"]
 
 # now get average crime rate for each postcode
 # group by different variables to change crime type
-pdf_geel_post = pdf_geel["Rate_per_100000"].groupby(pdf_geel["Postcode"]).median().astype(float)
+pdf_geel_post = pdf_geel["Rate_per_100000"].groupby(pdf_geel["Postcode"]).mean().astype(float)
+print pdf_geel_post
 
 # this creates series, want to reset index to get back to df
 pdf_geel_post = pdf_geel_post.reset_index()
@@ -64,6 +70,8 @@ c_map.choropleth(geo_path="edited_VIC.json",
                  key_on = "feature.properties.POA_CODE",
                  fill_color = "YlOrRd",
                  fill_opacity = 0.7,
-                 line_opacity = 0.2)                   
+                 line_opacity = 0.2,
+                 threshold_scale=[0, 5, 10, 15, 20]
+                 )                   
                    
 c_map.save("crime_map.html")
