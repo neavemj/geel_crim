@@ -33,6 +33,7 @@ pdf_geel = pdf[(pdf.Postcode > 3000) & (pdf.Postcode <  4000)]
 # subset by crime type
 ## TODO: problem here is that this causes a KeyError because not all postcodes have data for these specific crimes
 #pdf_geel = pdf_geel[pdf_geel.Offence_Group == "F99_Other_miscellaneous_offences"]
+pdf_geel = pdf_geel[pdf_geel.Offence_Group == "A51_Aggravated_robbery"]
 
 # now get average crime rate for each postcode
 # group by different variables to change crime type
